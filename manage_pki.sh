@@ -21,10 +21,11 @@
 # Adjust OpenSSL configurations as needed. That is kept in CA specific files named openssl.cnf which are created by this script.
 
 script_name=$(basename "$0")
-version="2.1"
+version="2.2"
 creator="somikro"
 startTS=$(date +%s.%N)
 # Version history:
+# 2.2 - Made passphrase entry more user-friendly with verification and limited attempts
 # 2.1 - Added servers_CA for arbitrary servers; CA selection for server certs
 #     - changed name from setup_pki.sh to manage_EEFD_pki.sh
 # 2.0 - Added PKI management: interactive certificate creation
@@ -658,14 +659,22 @@ sed -i "s/PLACEHOLDER_LOCALITY/$LOCALITY/g" "$MYDOMAIN_CA_DIR/openssl.cnf"
 echo "[PKI] Step 1: Creating Root CA (${ROOT_CA_NAME}_CA) private key..."
 echo "[PKI] You will be prompted to set a passphrase for the Root CA private key"
 echo "[PKI] Please enter the same passphrase twice:"
-read -s -p "Enter Root CA passphrase: " ROOT_CA_PASSPHRASE
-echo ""
-read -s -p "Verify Root CA passphrase: " ROOT_CA_PASSPHRASE_VERIFY
-echo ""
-if [ "$ROOT_CA_PASSPHRASE" != "$ROOT_CA_PASSPHRASE_VERIFY" ]; then
-    echo "[PKI] ERROR: Passphrases do not match!"
-    exit 1
-fi
+for attempt in 1 2 3; do
+    read -s -p "Enter Root CA passphrase: " ROOT_CA_PASSPHRASE
+    echo ""
+    read -s -p "Verify Root CA passphrase: " ROOT_CA_PASSPHRASE_VERIFY
+    echo ""
+    if [ "$ROOT_CA_PASSPHRASE" = "$ROOT_CA_PASSPHRASE_VERIFY" ]; then
+        break
+    else
+        if [ $attempt -lt 3 ]; then
+            echo "[PKI] ERROR: Passphrases do not match! Attempt $attempt of 3. Please try again."
+        else
+            echo "[PKI] ERROR: Passphrases do not match! Maximum attempts exceeded."
+            exit 1
+        fi
+    fi
+done
 openssl ecparam -genkey -name secp384r1 | \
     openssl ec -aes256 -passout pass:"$ROOT_CA_PASSPHRASE" -out "$ROOT_CA_DIR/private/ca_key.key"
 chmod 400 "$ROOT_CA_DIR/private/ca_key.key"
@@ -686,14 +695,22 @@ openssl x509 -noout -text -in "$ROOT_CA_DIR/certs/root_ca.crt" | grep -E "Subjec
 echo ""
 echo "[PKI] Step 3: Creating Intermediate CA (${MYDOMAIN_CA_NAME}_CA) private key..."
 echo "[PKI] You will be prompted to set a passphrase for the Intermediate CA private key"
-read -s -p "Enter ${MYDOMAIN_CA_NAME}_CA passphrase: " MYDOMAIN_CA_PASSPHRASE
-echo ""
-read -s -p "Verify ${MYDOMAIN_CA_NAME}_CA passphrase: " MYDOMAIN_CA_PASSPHRASE_VERIFY
-echo ""
-if [ "$MYDOMAIN_CA_PASSPHRASE" != "$MYDOMAIN_CA_PASSPHRASE_VERIFY" ]; then
-    echo "[PKI] ERROR: Passphrases do not match!"
-    exit 1
-fi
+for attempt in 1 2 3; do
+    read -s -p "Enter ${MYDOMAIN_CA_NAME}_CA passphrase: " MYDOMAIN_CA_PASSPHRASE
+    echo ""
+    read -s -p "Verify ${MYDOMAIN_CA_NAME}_CA passphrase: " MYDOMAIN_CA_PASSPHRASE_VERIFY
+    echo ""
+    if [ "$MYDOMAIN_CA_PASSPHRASE" = "$MYDOMAIN_CA_PASSPHRASE_VERIFY" ]; then
+        break
+    else
+        if [ $attempt -lt 3 ]; then
+            echo "[PKI] ERROR: Passphrases do not match! Attempt $attempt of 3. Please try again."
+        else
+            echo "[PKI] ERROR: Passphrases do not match! Maximum attempts exceeded."
+            exit 1
+        fi
+    fi
+done
 openssl ecparam -genkey -name secp384r1 | \
     openssl ec -aes256 -passout pass:"$MYDOMAIN_CA_PASSPHRASE" -out "$MYDOMAIN_CA_DIR/private/ca_key.key"
 chmod 400 "$MYDOMAIN_CA_DIR/private/ca_key.key"
@@ -726,14 +743,22 @@ chmod 444 "$MYDOMAIN_CA_DIR/certs/ca-chain.crt"
 echo ""
 echo "[PKI] Step 7: Creating Intermediate CA (servers_CA) for arbitrary servers..."
 echo "[PKI] You will be prompted to set a passphrase for the servers_CA private key"
-read -s -p "Enter servers_CA passphrase: " SERVERS_CA_PASSPHRASE
-echo ""
-read -s -p "Verify servers_CA passphrase: " SERVERS_CA_PASSPHRASE_VERIFY
-echo ""
-if [ "$SERVERS_CA_PASSPHRASE" != "$SERVERS_CA_PASSPHRASE_VERIFY" ]; then
-    echo "[PKI] ERROR: Passphrases do not match!"
-    exit 1
-fi
+for attempt in 1 2 3; do
+    read -s -p "Enter servers_CA passphrase: " SERVERS_CA_PASSPHRASE
+    echo ""
+    read -s -p "Verify servers_CA passphrase: " SERVERS_CA_PASSPHRASE_VERIFY
+    echo ""
+    if [ "$SERVERS_CA_PASSPHRASE" = "$SERVERS_CA_PASSPHRASE_VERIFY" ]; then
+        break
+    else
+        if [ $attempt -lt 3 ]; then
+            echo "[PKI] ERROR: Passphrases do not match! Attempt $attempt of 3. Please try again."
+        else
+            echo "[PKI] ERROR: Passphrases do not match! Maximum attempts exceeded."
+            exit 1
+        fi
+    fi
+done
 openssl ecparam -genkey -name secp384r1 | \
     openssl ec -aes256 -passout pass:"$SERVERS_CA_PASSPHRASE" -out "$SERVERS_CA_DIR/private/ca_key.key"
 chmod 400 "$SERVERS_CA_DIR/private/ca_key.key"
@@ -846,14 +871,22 @@ sed -i "s/PLACEHOLDER_LOCALITY/$LOCALITY/g" "$SERVERS_CA_DIR/openssl.cnf"
 echo ""
 echo "[PKI] Step 12: Creating Intermediate CA (peoples_CA) for natural persons..."
 echo "[PKI] You will be prompted to set a passphrase for the peoples_CA private key"
-read -s -p "Enter peoples_CA passphrase: " PEOPLES_CA_PASSPHRASE
-echo ""
-read -s -p "Verify peoples_CA passphrase: " PEOPLES_CA_PASSPHRASE_VERIFY
-echo ""
-if [ "$PEOPLES_CA_PASSPHRASE" != "$PEOPLES_CA_PASSPHRASE_VERIFY" ]; then
-    echo "[PKI] ERROR: Passphrases do not match!"
-    exit 1
-fi
+for attempt in 1 2 3; do
+    read -s -p "Enter peoples_CA passphrase: " PEOPLES_CA_PASSPHRASE
+    echo ""
+    read -s -p "Verify peoples_CA passphrase: " PEOPLES_CA_PASSPHRASE_VERIFY
+    echo ""
+    if [ "$PEOPLES_CA_PASSPHRASE" = "$PEOPLES_CA_PASSPHRASE_VERIFY" ]; then
+        break
+    else
+        if [ $attempt -lt 3 ]; then
+            echo "[PKI] ERROR: Passphrases do not match! Attempt $attempt of 3. Please try again."
+        else
+            echo "[PKI] ERROR: Passphrases do not match! Maximum attempts exceeded."
+            exit 1
+        fi
+    fi
+done
 openssl ecparam -genkey -name secp384r1 | \
     openssl ec -aes256 -passout pass:"$PEOPLES_CA_PASSPHRASE" -out "$PEOPLES_CA_DIR/private/ca_key.key"
 chmod 400 "$PEOPLES_CA_DIR/private/ca_key.key"
@@ -962,14 +995,22 @@ sed -i "s/PLACEHOLDER_LOCALITY/$LOCALITY/g" "$PEOPLES_CA_DIR/openssl.cnf"
 echo ""
 echo "[PKI] Step 17: Creating Intermediate CA (machines_CA) for devices..."
 echo "[PKI] You will be prompted to set a passphrase for the machines_CA private key"
-read -s -p "Enter machines_CA passphrase: " MACHINES_CA_PASSPHRASE
-echo ""
-read -s -p "Verify machines_CA passphrase: " MACHINES_CA_PASSPHRASE_VERIFY
-echo ""
-if [ "$MACHINES_CA_PASSPHRASE" != "$MACHINES_CA_PASSPHRASE_VERIFY" ]; then
-    echo "[PKI] ERROR: Passphrases do not match!"
-    exit 1
-fi
+for attempt in 1 2 3; do
+    read -s -p "Enter machines_CA passphrase: " MACHINES_CA_PASSPHRASE
+    echo ""
+    read -s -p "Verify machines_CA passphrase: " MACHINES_CA_PASSPHRASE_VERIFY
+    echo ""
+    if [ "$MACHINES_CA_PASSPHRASE" = "$MACHINES_CA_PASSPHRASE_VERIFY" ]; then
+        break
+    else
+        if [ $attempt -lt 3 ]; then
+            echo "[PKI] ERROR: Passphrases do not match! Attempt $attempt of 3. Please try again."
+        else
+            echo "[PKI] ERROR: Passphrases do not match! Maximum attempts exceeded."
+            exit 1
+        fi
+    fi
+done
 openssl ecparam -genkey -name secp384r1 | \
     openssl ec -aes256 -passout pass:"$MACHINES_CA_PASSPHRASE" -out "$MACHINES_CA_DIR/private/ca_key.key"
 chmod 400 "$MACHINES_CA_DIR/private/ca_key.key"
