@@ -1,0 +1,20 @@
+# Ignore variant directories and their contents
+*/
+
+# Ignore VARIANT_INFO.txt (user-specific)
+VARIANT_INFO.txt
+
+# Ignore temporary files
+*.tmp
+*.log
+*.code-workspace
+*~
+
+# Ignore mounted ISO directories
+iso-mount/
+
+# Keep the scripts
+!*.sh
+!README.md
+!LICENSE
+!.gitignore
